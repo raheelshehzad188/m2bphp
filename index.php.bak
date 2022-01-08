@@ -1,8 +1,29 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-$ret = array(
-"payment" =>1
-);
-echo json_encode($ret);
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => "https://m2b.foxaf.com/sdk/process-payment.php?token=cnon%3ACBASEAXK6nxce3XJgclzx-wHR8g&amount=1.5",
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 30,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "POST",
+  CURLOPT_HTTPHEADER => array(
+    "cache-control: no-cache",
+    "postman-token: bf331fc0-5293-b5f2-20ff-eb1f8bf7f409"
+  ),
+));
+
+$response = curl_exec($curl);
+$err = curl_error($curl);
+
+curl_close($curl);
+//var_dump($response);
+if ($err) {
+  echo "cURL Error #:" . $err;
+} else {
+  echo $response;
+}
 exit();
 ?>

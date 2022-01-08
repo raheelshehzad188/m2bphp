@@ -1,30 +1,75 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-$curl = curl_init();
+error_reporting(0);
 
-curl_setopt_array($curl, array(
-  CURLOPT_URL => "https://m2b.foxaf.com/sdk//process-payment.php?token=cnon%3ACBASEAXK6nxce3XJgclzx-wHR8g&amount=1.5",
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => "",
-  CURLOPT_MAXREDIRS => 10,
-  CURLOPT_TIMEOUT => 30,
-  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-  CURLOPT_CUSTOMREQUEST => "POST",
-  CURLOPT_HTTPHEADER => array(
-    "cache-control: no-cache",
-    "postman-token: 26c05cb1-80c5-7424-c61c-9db297478ebc"
-  ),
-));
+require 'vendor/autoload.php';
+// include 'utils/location-info.php';
 
-$response = curl_exec($curl);
-$err = curl_error($curl);
+use Square\Environment;
+// dotenv is used to read from the '.env' file created for credentials
+$dotenv = Dotenv\Dotenv::create(__DIR__);
+$dotenv->load();
+// Pulled from the .env file and upper cased e.g. SANDBOX, PRODUCTION.
+$upper_case_environment = strtoupper(getenv('ENVIRONMENT'));
+// die($upper_case_environment.'');
+$web_payment_sdk_url = $upper_case_environment === Environment::PRODUCTION ? "https://web.squarecdn.com/v1/square.js" : "https://sandbox.web.squarecdn.com/v1/square.js";
+$web_payment_sdk_url = "https://web.squarecdn.com/v1/square.js";
 
-curl_close($curl);
-
-if ($err) {
-  echo "cURL Error #:" . $err;
-} else {
-  echo $response;
-}
-exit();
 ?>
+<html>
+
+<head>
+  <title>My Payment Flow</title>
+  <!-- link to the Square web payment SDK library -->
+  <script type="text/javascript" src="<?php echo $web_payment_sdk_url ?>"></script>
+  <script type="text/javascript">
+    window.applicationId =
+      "<?php
+        echo getenv('SQUARE_APPLICATION_ID');
+
+        ?>";
+    window.locationId =
+      "<?php
+        echo getenv('SQUARE_LOCATION_ID');
+        ?>";
+    window.currency =
+      "<?php
+        echo 'USD';
+        ?>";
+    window.country =
+      "<?php
+        echo 'PK';
+        ?>";
+  </script>
+  <link rel="stylesheet" type="text/css" href="public/stylesheets/style.css">
+  <link rel="stylesheet" type="text/css" href="public/stylesheets/sq-payment.css">
+</head>
+
+<body>
+  <form class="payment-form" id="fast-checkout">
+    <div class="wrapper">
+      <div id="apple-pay-button" alt="apple-pay" type="button"></div>
+      <div id="google-pay-button" alt="google-pay" type="button"></div>
+      <div class="border">
+        <span>OR</span>
+      </div>
+      <div id="ach-wrapper">
+        <label for="ach-account-holder-name">Full Name</label>
+        <input id="ach-account-holder-name" type="text" placeholder="Jane Doe" name="ach-account-holder-name" autocomplete="name" /><span id="ach-message"></span><button id="ach-button" type="button">Pay with Bank Account</button>
+
+        <div class="border">
+          <span>OR</span>
+        </div>
+      </div>
+      <div id="card-container"></div><button id="card-button" type="button">Pay with Card</button>
+      <span id="payment-flow-message"></span>
+    </div>
+  </form>
+
+  <script type="text/javascript" src="public/js/sq-ach.js"></script>
+  <script type="text/javascript" src="public/js/sq-apple-pay.js"></script>
+  <script type="text/javascript" src="public/js/sq-card-pay.js"></script>
+  <script type="text/javascript" src="public/js/sq-google-pay.js"></script>
+  <script type="text/javascript" src="public/js/sq-payment-flow.js"></script>
+</body>
+
+</html>
